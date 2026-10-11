@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}求职者端{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3 reveal">
+  <div>
+    <h1 class="h3 mb-1 fw-bold text-dark d-flex align-items-center">
+      <span class="badge bg-primary-subtle text-primary me-2"><i class="bi bi-person-workspace"></i></span>AI对话招聘
+    </h1>
+    <p class="text-secondary mb-0">上传简历、选择岗位、完成AI匹配评估并提交审核。</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <!-- 步骤一：上传简历 -->
+    <div class="card mb-4 border-0 shadow-sm reveal">
+      <div class="card-header bg-white fw-bold text-dark d-flex align-items-center">
+        <span class="badge bg-primary rounded-circle me-2 d-inline-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">1</span>
+        上传简历
+      </div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('candidate.upload_resume') }}" enctype="multipart/form-data" id="uploadForm">
+          <div class="border-2 border-dashed border-primary-subtle rounded-3 p-4 text-center mb-3 bg-light position-relative hover-transition" style="border: 2px dashed rgba(13, 110, 253, 0.25); cursor: pointer;">
+            <i class="bi bi-cloud-arrow-up-fill text-primary fs-1 mb-2 d-block"></i>
+            <span class="fw-semibold text-dark d-block mb-1">拖拽或点击选择文件</span>
+            <span class="text-secondary small">支持 PDF, DOCX, TXT 格式</span>
+            <input class="form-control position-absolute top-0 start-0 w-100 h-100 opacity-0" name="resume" type="file" accept=".pdf,.docx,.txt" style="cursor: pointer;" onchange="document.getElementById('fileName').innerText = this.files[0].name; document.getElementById('uploadTip').style.display='block';">
+          </div>
+          <div id="uploadTip" class="alert alert-info py-2 px-3 mb-3 small" style="display: none;">
+            <i class="bi bi-file-earmark-check me-1"></i>已选文件: <strong id="fileName">-</strong>
+          </div>
+          <button class="btn btn-gradient-primary w-100 py-2" type="submit">
+            <i class="bi bi-cpu-fill me-1"></i>上传并解析
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 步骤二：选择岗位 -->
+    <div class="card border-0 shadow-sm reveal">
+      <div class="card-header bg-white fw-bold text-dark d-flex align-items-center">
+        <span class="badge bg-primary rounded-circle me-2 d-inline-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">2</span>
+        选择岗位
+      </div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('candidate.select_job') }}">
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">意向申请岗位</label>
+            <select class="form-select mb-2" name="job_name" required>
+              <option value="">请选择岗位</option>
+              {% for job in jobs %}
+              <option value="{{ job.job_name }}" {% if selected_job == job.job_name %}selected{% endif %}>{{ job.job_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button class="btn btn-outline-custom w-100 py-2" type="submit">
+            <i class="bi bi-check-circle me-1"></i>确认岗位
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <!-- 解析结果展示 -->
+    <div class="card mb-4 border-0 shadow-sm reveal">
+      <div class="card-header bg-white fw-bold text-dark">
+        <i class="bi bi-file-earmark-person-fill text-primary me-2"></i>简历解析结果
+      </div>
+      <div class="card-body">
+        {% if parsed %}
+        <div class="row g-4">
+          {% for label, icon, value in [
+            ('姓名', 'bi-person', parsed.name),
+            ('邮箱', 'bi-envelope', parsed.email),
+            ('学历', 'bi-mortarboard', parsed.education),
+            ('专业', 'bi-award', parsed.major),
+            ('城市', 'bi-geo-alt', parsed.city),
+            ('技能', 'bi-code-slash', parsed.skills)
+          ] %}
+          <div class="col-md-6">
+            <div class="d-flex align-items-start">
+              <div class="bg-light rounded-3 p-2 me-3 text-primary d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                <i class="bi {{ icon }} fs-5"></i>
+              </div>
+              <div class="flex-grow-1">
+                <div class="text-secondary small fw-medium">{{ label }}</div>
+                <div class="fw-semibold text-dark">{{ value or '-' }}</div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-secondary">
+          <i class="bi bi-file-earmark-arrow-up fs-2 mb-2 d-block opacity-50"></i>
+          请先在一侧上传您的个人简历。
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- 步骤三：AI 匹配评分 -->
+    <div class="card mb-4 border-0 shadow-sm reveal">
+      <div class="card-header bg-white fw-bold text-dark d-flex align-items-center">
+        <span class="badge bg-primary rounded-circle me-2 d-inline-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">3</span>
+        AI匹配评分
+      </div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('candidate.score_resume') }}" class="d-flex gap-3 align-items-center flex-wrap mb-3">
+          <input type="hidden" name="job_name" value="{{ selected_job or '' }}">
+          <button class="btn btn-gradient-primary py-2 px-4" type="submit" {% if not parsed or not selected_job %}disabled{% endif %}>
+            <i class="bi bi-lightning-charge-fill me-1"></i>开始AI精准评估
+          </button>
+          <div class="d-flex align-items-center bg-light rounded-pill px-3 py-2 border">
+            <i class="bi bi-briefcase text-primary me-2"></i>
+            <span class="text-secondary small fw-medium">当前评估岗位：</span>
+            <span class="fw-semibold text-dark small">{{ selected_job or '未选择' }}</span>
+          </div>
+        </form>
+
+        {% if result %}
+        <div class="border rounded-3 p-4 bg-light shadow-inner mt-4">
+          <div class="row g-4 align-items-center">
+            <div class="col-md-3 text-center border-end border-md-2">
+              <div class="text-secondary small fw-medium mb-1">综合匹配得分</div>
+              <div class="display-4 fw-bold text-primary">{{ result.score }}</div>
+              <div class="progress mt-2 mx-auto" style="height: 6px; max-width: 100px;">
+                <div class="progress-bar bg-primary" style="width: {{ result.score }}%"></div>
+              </div>
+            </div>
+            <div class="col-md-9 ps-md-4">
+              <div class="mb-3">
+                <span class="badge bg-success-subtle text-success mb-2"><i class="bi bi-shield-check me-1"></i>核心竞争优势</span>
+                <p class="text-dark mb-0 fs-6">{{ result.advantage or '-' }}</p>
+              </div>
+              <div>
+                <span class="badge bg-warning-subtle text-warning mb-2"><i class="bi bi-lightbulb me-1"></i>匹配改进建议</span>
+                <p class="text-dark mb-0 fs-6">{{ result.shortcoming or '-' }}</p>
+              </div>
+            </div>
+          </div>
+          <hr class="my-4">
+          <details class="bg-white rounded-3 border p-2">
+            <summary class="text-primary fw-semibold p-2" style="cursor: pointer;">
+              <i class="bi bi-clipboard-data-fill me-1"></i>查看完整 AI 深度评分报告
+            </summary>
+            <pre class="mono-pre mt-2 mb-0" style="max-height: 400px; overflow-y: auto;">{{ result.report }}</pre>
+          </details>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- 步骤四：保存并投递 -->
+    <div class="card border-0 shadow-sm reveal">
+      <div class="card-header bg-white fw-bold text-dark d-flex align-items-center">
+        <span class="badge bg-primary rounded-circle me-2 d-inline-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">4</span>
+        提交审核
+      </div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('candidate.submit_application') }}">
+          <button class="btn btn-gradient-primary w-100 py-3 fs-5" type="submit" {% if not result %}disabled{% endif %}>
+            <i class="bi bi-send-fill me-2"></i>提交投递并等待审核
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .hover-transition {
+    transition: all 0.3s ease;
+  }
+  .hover-transition:hover {
+    background-color: rgba(13, 110, 253, 0.05) !important;
+    border-color: #0d6efd !important;
+  }
+</style>
+{% endblock %}

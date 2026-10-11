@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}系统配置{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3 reveal">
+  <div>
+    <h1 class="h3 mb-1 fw-bold text-dark d-flex align-items-center">
+      <span class="badge bg-primary-subtle text-primary me-2"><i class="bi bi-sliders"></i></span>系统配置
+    </h1>
+    <p class="text-secondary mb-0">配置大模型接口、发信邮箱和系统访问地址。</p>
+  </div>
+  <a class="btn btn-outline-custom" href="{{ url_for('admin.dashboard') }}">
+    <i class="bi bi-arrow-left me-1"></i>返回后台
+  </a>
+</div>
+
+<form method="post" class="reveal">
+  {% for group in groups %}
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-bold text-dark">
+      {{ group.label }}
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        {% for item in group.fields %}
+        {% set field = item.field %}
+        {% set config = item.config %}
+        <div class="col-md-6">
+          <label class="form-label text-secondary small fw-medium">{{ field['label'] }}</label>
+          {% if field.get('type') == 'select' %}
+          <select class="form-select" name="{{ field['key'] }}">
+            {% for value, label in field.get('options', []) %}
+            <option value="{{ value }}" {% if config and config.config_value == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          {% else %}
+          <input
+            class="form-control"
+            name="{{ field['key'] }}"
+            type="{{ 'password' if field.get('secret') else 'text' }}"
+            value="{{ config.config_value if config else '' }}"
+            autocomplete="off">
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  <div class="d-flex justify-content-end">
+    <button class="btn btn-gradient-primary px-4" type="submit">
+      <i class="bi bi-save-fill me-1"></i>保存配置
+    </button>
+  </div>
+</form>
+{% endblock %}

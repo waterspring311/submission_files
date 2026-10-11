@@ -1,0 +1,7 @@
+name: flow_candidate_20260607052537449023
+email: flow_20260607052537449023@example.com
+education: bachelor
+major: software
+city: Shanghai
+skills: Flask MySQL SQLAlchemy Bootstrap
+project: recruitment workflow test.

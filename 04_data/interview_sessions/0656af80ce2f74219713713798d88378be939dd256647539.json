@@ -1,0 +1,81 @@
+{
+  "started": true,
+  "module_index": 1,
+  "current_questions": [
+    {
+      "question": "请选择一个代表性项目，说明你的职责和最终结果。",
+      "reference_answer": "能讲清背景、任务、行动、结果。",
+      "scoring_points": [
+        "项目结构",
+        "个人贡献",
+        "结果量化"
+      ]
+    },
+    {
+      "question": "项目里遇到过什么难点？你是如何定位和解决的？",
+      "reference_answer": "能描述问题定位、方案选择和复盘。",
+      "scoring_points": [
+        "问题拆解",
+        "解决能力",
+        "复盘意识"
+      ]
+    },
+    {
+      "question": "如果重新做这个项目，你会优先优化哪一部分？",
+      "reference_answer": "能提出可落地的优化点和原因。",
+      "scoring_points": [
+        "迭代思维",
+        "架构意识",
+        "业务价值"
+      ]
+    }
+  ],
+  "module_answers": [
+    {
+      "module": "项目经历",
+      "question": "请选择一个代表性项目，说明你的职责和最终结果。",
+      "reference_answer": "能讲清背景、任务、行动、结果。",
+      "scoring_points": [
+        "项目结构",
+        "个人贡献",
+        "结果量化"
+      ],
+      "answer": "1111"
+    },
+    {
+      "module": "项目经历",
+      "question": "项目里遇到过什么难点？你是如何定位和解决的？",
+      "reference_answer": "能描述问题定位、方案选择和复盘。",
+      "scoring_points": [
+        "问题拆解",
+        "解决能力",
+        "复盘意识"
+      ],
+      "answer": "1"
+    }
+  ],
+  "answers": [
+    {
+      "module": "基础知识",
+      "question": "请介绍你最熟悉的一项技术，并说明它解决了什么问题。",
+      "reference_answer": "能说明技术原理、适用场景和实际价值。",
+      "scoring_points": [
+        "基础理解",
+        "表达清晰",
+        "场景意识"
+      ],
+      "answer": "111"
+    },
+    {
+      "module": "基础知识",
+      "question": "你平时如何保证代码或分析结果的质量？",
+      "reference_answer": "能提到测试、复核、日志、代码规范或数据校验。",
+      "scoring_points": [
+        "质量意识",
+        "工程习惯",
+        "风险意识"
+      ],
+      "answer": "111"
+    }
+  ]
+}

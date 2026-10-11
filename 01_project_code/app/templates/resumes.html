@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}简历记录{% endblock %}
+{% block content %}
+{% set interview_status_labels = {
+  'pending_review': '待管理员审核',
+  'review_rejected': '审核未通过',
+  'ai_pending': 'AI面试待完成',
+  'ai_completed': 'AI面试已完成',
+  'no_ai_interview': '无需AI面试',
+  '已发送': 'AI面试待完成',
+  'AI面试待完成': 'AI面试待完成',
+  'AI面试已完成': 'AI面试已完成'
+} %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3 reveal">
+  <div>
+    <h1 class="h3 mb-1 fw-bold text-dark d-flex align-items-center">
+      <span class="badge bg-primary-subtle text-primary me-2"><i class="bi bi-file-earmark-text-fill"></i></span>简历记录
+    </h1>
+    <p class="text-secondary mb-0">查看投递、评分、初筛结果和AI面试链接状态。</p>
+  </div>
+  {% if current_user and current_user.role == 'admin' %}
+  <a class="btn btn-gradient-primary" href="{{ url_for('candidate.index') }}">
+    <i class="bi bi-cloud-arrow-up-fill me-1"></i>求职者投递入口
+  </a>
+  {% endif %}
+</div>
+
+<div class="card mb-4 border-0 shadow-sm reveal">
+  <div class="card-body p-3">
+    <form class="row g-3" method="get">
+      <div class="col-md-5">
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0 text-secondary"><i class="bi bi-search"></i></span>
+          <input class="form-control border-start-0" name="keyword" value="{{ keyword }}" placeholder="候选人姓名或邮箱搜索...">
+        </div>
+      </div>
+      <div class="col-md-5">
+        <select class="form-select" name="job">
+          <option value="">全部岗位</option>
+          {% for job in jobs %}
+          <option value="{{ job.job_name }}" {% if selected_job == job.job_name %}selected{% endif %}>{{ job.job_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 d-grid">
+        <button class="btn btn-gradient-primary" type="submit">筛选</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm reveal">
+  <div class="table-responsive" style="border-radius: 16px; overflow: hidden;">
+    <table class="table table-hover align-middle mb-0 bg-white">
+      <thead class="table-light text-secondary fw-semibold">
+        <tr>
+          <th class="ps-4">候选人</th>
+          <th>意向岗位</th>
+          <th>电子邮箱</th>
+          <th>匹配得分</th>
+          <th>初筛结果</th>
+          <th class="pe-4">AI 面试</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for resume in resumes %}
+        <tr class="hover-transition">
+          <td class="ps-4 py-3">
+            <a class="fw-bold text-primary text-decoration-none" href="{{ url_for('main.resume_detail', resume_id=resume.id) }}">
+              <i class="bi bi-person-badge-fill me-1"></i>{{ resume.name or '未知候选人' }}
+            </a>
+          </td>
+          <td><span class="badge bg-light text-dark border"><i class="bi bi-briefcase me-1"></i>{{ resume.job or '-' }}</span></td>
+          <td class="text-secondary small">{{ resume.email or '-' }}</td>
+          <td>
+            {% if resume.score %}
+              <span class="fw-bold text-dark">{{ resume.score }}</span><span class="text-muted small"> / 100</span>
+            {% else %}
+              <span class="text-muted">-</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if resume.result == '初筛通过' %}
+              <span class="badge bg-success-subtle text-success">初筛通过</span>
+            {% elif resume.result in ['初筛淘汰', '初筛未通过'] %}
+              <span class="badge bg-danger-subtle text-danger">初筛未通过</span>
+            {% else %}
+              <span class="badge bg-warning-subtle text-warning">{{ resume.result or '待评估' }}</span>
+            {% endif %}
+            <div class="small mt-2">
+              {% if resume.review_status == 'approved' %}
+              <span class="badge bg-success-subtle text-success">审核通过</span>
+              {% elif resume.review_status == 'rejected' %}
+              <span class="badge bg-danger-subtle text-danger">已驳回</span>
+              {% else %}
+              <span class="badge bg-warning-subtle text-warning">待审核</span>
+              {% endif %}
+            </div>
+          </td>
+          <td class="pe-4">
+            {% if resume.interview_link %}
+            <a class="btn btn-sm btn-outline-custom" href="{{ resume.interview_link }}" target="_blank">
+              <i class="bi bi-robot me-1"></i>{{ interview_status_labels.get(resume.interview_status, resume.interview_status or '进行中') }}
+            </a>
+            {% else %}
+            <span class="text-muted small">未生成链接</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td class="text-secondary py-5 text-center" colspan="6">
+            <i class="bi bi-file-earmark-person fs-2 mb-2 d-block opacity-50"></i>
+            暂无简历投递记录
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

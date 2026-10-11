@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}AI面试{% endblock %}
+{% block content %}
+<div class="row justify-content-center py-4 reveal">
+  <div class="col-lg-9">
+    <div class="card border-0 shadow-lg">
+      <div class="card-body p-5">
+        <div class="d-flex align-items-center mb-4">
+          <div class="bg-primary-subtle text-primary rounded-3 p-3 me-3 d-flex align-items-center justify-content-center" style="width: 54px; height: 54px;">
+            <i class="bi bi-robot fs-3"></i>
+          </div>
+          <div>
+            <h1 class="h4 mb-1 fw-bold text-dark">AI 智能面试评估通道</h1>
+            <p class="text-secondary mb-0 small">全自动深度技能测评，由 智聘未来 AI 引擎驱动</p>
+          </div>
+        </div>
+
+        {% if error %}
+        <div class="alert alert-warning mb-0 border-0 shadow-sm p-3 d-flex align-items-center" style="background: rgba(255, 193, 7, 0.1); color: #856404; border-radius: 12px;">
+          <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+          <span class="fw-semibold">{{ error }}</span>
+        </div>
+        {% elif submitted %}
+        <div class="alert alert-success border-0 shadow-sm p-4 text-center" style="background: rgba(40, 167, 69, 0.1); color: #155724; border-radius: 16px;">
+          <i class="bi bi-check-circle-fill text-success display-4 mb-3 d-block"></i>
+          <h4 class="fw-bold mb-2">面试答题已成功提交！</h4>
+          <p class="mb-4">您的答卷已经安全存入招聘系统，AI 测评得分及报告正在生成。</p>
+          <div class="d-inline-flex gap-3 mb-4 bg-white px-4 py-2 rounded-pill border">
+            <span><strong>最终得分：</strong>{{ record.final_score if record.final_score is not none else '评估中...' }}</span>
+            <span class="border-end"></span>
+            <span><strong>结果：</strong>{{ record.result or '审核中' }}</span>
+          </div>
+          <div class="d-block">
+            {% if current_user and current_user.role in ['recruiter', 'admin'] %}
+            <a class="btn btn-gradient-primary px-4 py-2" href="{{ url_for('interviews.records') }}">返回AI面试管理</a>
+            {% else %}
+            <a class="btn btn-gradient-primary px-4 py-2" href="{{ url_for('candidate.index') }}">返回求职者端</a>
+            {% endif %}
+          </div>
+        </div>
+        {% elif record %}
+        <div class="bg-light p-4 rounded-3 border mb-4">
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <span class="text-secondary small fw-medium d-block">面试候选人</span>
+              <span class="fw-bold text-dark fs-5"><i class="bi bi-person-circle me-1 text-primary"></i>{{ record.candidate_name or '未知' }}</span>
+            </div>
+            <div class="col-sm-6">
+              <span class="text-secondary small fw-medium d-block">申请意向岗位</span>
+              <span class="fw-bold text-dark fs-5"><i class="bi bi-briefcase-fill me-1 text-primary"></i>{{ record.job_name or '-' }}</span>
+            </div>
+            <div class="col-sm-6">
+              <span class="text-secondary small fw-medium d-block">面试状态</span>
+              <span class="badge bg-primary-subtle text-primary mt-1">{{ record.status or '-' }}</span>
+            </div>
+            <div class="col-sm-6">
+              <span class="text-secondary small fw-medium d-block">限制访问次数</span>
+              <span class="fw-semibold text-dark">{{ request_count or 0 }}</span> <span class="text-muted small">/ 3 次</span>
+            </div>
+          </div>
+        </div>
+
+        {% if not state or not state.started %}
+        <div class="alert alert-info border-0 shadow-sm p-4 mb-4" style="background: rgba(13, 110, 253, 0.08); color: #0d6efd; border-radius: 12px;">
+          <h5 class="fw-bold mb-2 d-flex align-items-center"><i class="bi bi-info-circle-fill me-2"></i> 面试须知及规则</h5>
+          <p class="mb-0 small" style="line-height: 1.6;">
+            本项 AI 测评总共包含 **基础知识、项目经历、实习经历、技能实战、技能进阶实战** 五大核心维度模块。
+            每一模块将依次呈现专业问题。**注意：在提交每一题的回答后将无法执行退回或修改操作**，请认真思考后再行提交。
+          </p>
+        </div>
+        <form method="post">
+          <input type="hidden" name="action" value="start">
+          <button class="btn btn-gradient-primary w-100 py-3 fs-5 fw-bold" type="submit">
+            <i class="bi bi-play-circle-fill me-2"></i>立即开始 AI 智能面试评估
+          </button>
+        </form>
+        {% elif completed %}
+        <div class="alert alert-success border-0 shadow-sm p-4 text-center mb-4" style="background: rgba(40, 167, 69, 0.08); color: #28a745; border-radius: 12px;">
+          <i class="bi bi-trophy-fill display-5 mb-2 d-block"></i>
+          <h5 class="fw-bold mb-2">恭喜！您已答完所有面试模块</h5>
+          <p class="mb-0 small">请点击下方按钮，将您的答题记录一键传送至 AI 引擎进行多维打分及分析报告生成。</p>
+        </div>
+        <form method="post">
+          <input type="hidden" name="action" value="submit">
+          <button class="btn btn-gradient-primary w-100 py-3 fs-5 fw-bold" type="submit">
+            <i class="bi bi-cloud-arrow-up-fill me-2"></i>提交完整面试结果
+          </button>
+        </form>
+        {% else %}
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-secondary small fw-bold">当前评测模块: <span class="text-dark">{{ current_module }}</span></span>
+            <span class="text-primary fw-bold small">进度: {{ (state.module_index / modules|length * 100)|round(0, 'floor') }}%</span>
+          </div>
+          <div class="progress" style="height: 8px; border-radius: 4px; background: rgba(0,0,0,0.05);">
+            <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" style="width: {{ (state.module_index / modules|length * 100)|round(0, 'floor') }}%"></div>
+          </div>
+        </div>
+        {% if current_question %}
+        <div class="border rounded-3 p-4 mb-4 bg-light shadow-inner">
+          <div class="small text-secondary fw-semibold mb-2 d-flex align-items-center">
+            <span class="badge bg-primary me-2">Q {{ state.module_answers|length + 1 }}</span> 
+            评测题目 (共 {{ state.current_questions|length }} 题)
+          </div>
+          <div class="fw-bold text-dark fs-5 leading-relaxed" style="line-height: 1.5;">{{ current_question.question }}</div>
+        </div>
+        <form method="post">
+          <input type="hidden" name="action" value="answer">
+          <div class="mb-4">
+            <label class="form-label text-secondary small fw-medium">请在下方区域中输入您的详细作答：</label>
+            <textarea class="form-control" name="answer" rows="8" placeholder="请认真梳理思路后，输入您的回答..." required style="resize: none; font-size: 1rem; line-height: 1.6;"></textarea>
+          </div>
+          <button class="btn btn-gradient-primary w-100 py-3 fs-5 fw-bold" type="submit">
+            <i class="bi bi-arrow-right-circle-fill me-2"></i>提交本题回答并进入下一题
+          </button>
+        </form>
+        {% endif %}
+        {% endif %}
+        {% else %}
+        <div class="alert alert-warning mb-0 border-0 shadow-sm p-4 text-center" style="background: rgba(220, 53, 69, 0.08); color: #dc3545; border-radius: 12px;">
+          <i class="bi bi-slash-circle-fill display-4 mb-2 d-block"></i>
+          <h5 class="fw-bold">无效的面试通道</h5>
+          <p class="mb-0 small">您访问的面试链接不存在、已经彻底失效或者已经过期，请联系招聘 HR 重新核发。</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

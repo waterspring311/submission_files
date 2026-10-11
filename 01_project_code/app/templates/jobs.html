@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}岗位管理{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3 reveal">
+  <div>
+    <h1 class="h3 mb-1 fw-bold text-dark d-flex align-items-center">
+      <span class="badge bg-primary-subtle text-primary me-2"><i class="bi bi-briefcase-fill"></i></span>岗位管理
+    </h1>
+    <p class="text-secondary mb-0">维护岗位JD、评分标准、招聘人数和开放状态。</p>
+  </div>
+  {% if edit_job %}
+  <a class="btn btn-outline-secondary" href="{{ url_for('main.jobs') }}">
+    <i class="bi bi-x-circle me-1"></i>取消编辑
+  </a>
+  {% endif %}
+</div>
+
+<div class="two-pane-layout">
+  <aside class="two-pane-sidebar">
+    <div class="card border-0 shadow-sm reveal">
+      <div class="card-header bg-white fw-bold text-dark border-bottom">
+        <i class="bi bi-pencil-square text-primary me-2"></i>{{ '编辑岗位' if edit_job else '新增岗位' }}
+      </div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('main.create_or_update_job') }}">
+          {% if edit_job %}<input type="hidden" name="job_id" value="{{ edit_job.id }}">{% endif %}
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">岗位名称</label>
+            <input class="form-control" name="job_name" value="{{ edit_job.job_name if edit_job else '' }}" placeholder="如：AI算法工程师" required>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6 mb-3">
+              <label class="form-label text-secondary small fw-medium">城市</label>
+              <input class="form-control" name="city" value="{{ edit_job.city if edit_job else '' }}" placeholder="如：北京">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label text-secondary small fw-medium">学历要求</label>
+              <select class="form-select" name="education">
+                {% for item in ['不限', '本科', '硕士', '博士'] %}
+                <option value="{{ item }}" {% if edit_job and edit_job.education == item %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6 mb-3">
+              <label class="form-label text-secondary small fw-medium">招聘人数</label>
+              <input class="form-control" name="hiring_count" type="number" min="1" value="{{ edit_job.hiring_count if edit_job else 1 }}">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label text-secondary small fw-medium">岗位状态</label>
+              <select class="form-select" name="is_open">
+                <option value="1" {% if not edit_job or edit_job.is_open %}selected{% endif %}>开放</option>
+                <option value="0" {% if edit_job and not edit_job.is_open %}selected{% endif %}>关闭</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">岗位描述 (JD)</label>
+            <textarea class="form-control" name="jd_content" rows="6" placeholder="请详细输入该岗位的职责与任用要求...">{{ edit_job.jd_content if edit_job else '' }}</textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">评分标准</label>
+            <textarea class="form-control" name="scoring_criteria" rows="4" placeholder="请提供AI评估时该岗位的评分维度...">{{ edit_job.scoring_criteria if edit_job else '' }}</textarea>
+          </div>
+          <button class="btn btn-gradient-primary w-100 py-2" type="submit">
+            <i class="bi bi-save-fill me-1"></i>{{ '保存修改' if edit_job else '添加岗位' }}
+          </button>
+        </form>
+      </div>
+    </div>
+  </aside>
+
+  <section class="two-pane-main">
+    <div class="card mb-4 border-0 shadow-sm reveal">
+      <div class="card-body p-3">
+        <form class="row g-2 align-items-center" method="get">
+          <div class="col">
+            <div class="input-group">
+              <span class="input-group-text bg-white border-end-0 text-secondary"><i class="bi bi-search"></i></span>
+              <input class="form-control border-start-0" name="keyword" value="{{ keyword }}" placeholder="输入岗位名称搜索...">
+            </div>
+          </div>
+          <div class="col-auto">
+            <button class="btn btn-gradient-primary px-4" type="submit">筛选</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm reveal">
+      <div class="table-scroll">
+        <table class="table table-hover align-middle mb-0 bg-white jobs-table">
+          <thead class="table-light text-secondary fw-semibold">
+            <tr class="text-nowrap-custom">
+              <th class="ps-4 job-info-col">岗位信息</th>
+              <th class="city-col text-nowrap-custom">城市</th>
+              <th class="edu-col text-nowrap-custom">学历</th>
+              <th class="count-col text-nowrap-custom text-center">人数</th>
+              <th class="status-col text-nowrap-custom">状态</th>
+              <th class="action-col text-end pe-4 text-nowrap-custom">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for job in jobs %}
+            <tr class="hover-transition">
+              <td class="ps-4 py-3">
+                <div class="fw-bold text-dark fs-6">{{ job.job_name }}</div>
+                <div class="small text-muted text-truncate-2 mt-1">{{ job.jd_content or '暂无JD描述' }}</div>
+              </td>
+              <td class="text-nowrap-custom"><span class="badge bg-light text-dark border"><i class="bi bi-geo-alt me-1"></i>{{ job.city or '-' }}</span></td>
+              <td class="text-nowrap-custom"><span class="badge bg-light text-dark border">{{ job.education or '-' }}</span></td>
+              <td class="fw-semibold text-dark text-nowrap-custom text-center">{{ job.hiring_count or 1 }}</td>
+              <td class="text-nowrap-custom">
+                <span class="badge bg-{{ 'success-subtle text-success' if job.is_open else 'secondary-subtle text-secondary' }}">
+                  {{ '开放' if job.is_open else '关闭' }}
+                </span>
+                <div class="small mt-2">
+                  {% if job.review_status == 'approved' %}
+                  <span class="badge bg-success-subtle text-success">审核通过</span>
+                  {% elif job.review_status == 'rejected' %}
+                  <span class="badge bg-danger-subtle text-danger">已驳回</span>
+                  {% else %}
+                  <span class="badge bg-warning-subtle text-warning">待审核</span>
+                  {% endif %}
+                </div>
+              </td>
+              <td class="text-end pe-4 text-nowrap-custom">
+                <div class="action-group">
+                  <a class="btn btn-sm btn-outline-custom text-nowrap-custom" href="{{ url_for('main.jobs', edit=job.id) }}">
+                    <i class="bi bi-pencil-square"></i> 编辑
+                  </a>
+                  <form method="post" action="{{ url_for('main.change_job_status', job_id=job.id) }}">
+                    <button class="btn btn-sm btn-outline-secondary text-nowrap-custom" type="submit">
+                      {{ '关闭' if job.is_open else '开放' }}
+                    </button>
+                  </form>
+                  <form method="post" action="{{ url_for('main.remove_job', job_id=job.id) }}" onsubmit="return confirm('确定要删除该岗位吗？');">
+                    <button class="btn btn-sm btn-outline-danger text-nowrap-custom" type="submit">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td class="text-secondary py-5 text-center" colspan="6">
+                <i class="bi bi-inbox fs-2 mb-2 d-block opacity-50"></i>
+                暂无岗位记录
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

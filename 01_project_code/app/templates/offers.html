@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}录用通知{% endblock %}
+{% block content %}
+{% set talent_status_labels = {
+  'offer_pending': '拟录取',
+  'hired': '已录用',
+  'archived': '已归档',
+  '拟录取': '拟录取',
+  '已录用': '已录用',
+  '已归档': '已归档'
+} %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3 reveal">
+  <div>
+    <h1 class="h3 mb-1 fw-bold text-dark d-flex align-items-center">
+      <span class="badge bg-primary-subtle text-primary me-2"><i class="bi bi-envelope-paper"></i></span>录用通知
+    </h1>
+    <p class="text-secondary mb-0">选择拟录取候选人，填写录用信息并发送官方 Offer 封套邮件。</p>
+  </div>
+  <a class="btn btn-outline-custom" href="{{ url_for('main.talents') }}">
+    <i class="bi bi-people me-1"></i>人才库管理
+  </a>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm reveal">
+      <div class="card-header bg-white fw-bold text-dark border-bottom">
+        <i class="bi bi-send-fill text-primary me-2"></i>定制并发送录用通知 (Offer)
+      </div>
+      <div class="card-body">
+        <form method="post">
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">选择目标候选人</label>
+            <select class="form-select" name="talent_id">
+              <option value="">手动填写基本信息</option>
+              {% for talent in talents %}
+              <option value="{{ talent.id }}">{{ talent.name or '未知' }} - {{ talent.email or '-' }} - {{ talent.status or '-' }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">候选人姓名</label>
+            <input class="form-control" name="candidate_name" placeholder="手动输入候选人真实姓名">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">电子邮箱地址</label>
+            <input class="form-control" name="email" type="email" placeholder="手动输入接收 Offer 的邮箱">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">拟录用岗位</label>
+            <select class="form-select" name="job_name">
+              <option value="">请选择录用岗位</option>
+              {% for job in jobs %}
+              <option value="{{ job.job_name }}">{{ job.job_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">薪资待遇</label>
+            <input class="form-control" name="salary" placeholder="如：25K * 15 薪 + 年终绩效">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">拟入职日期</label>
+            <input class="form-control" name="start_date" type="date">
+          </div>
+          <div class="mb-4">
+            <label class="form-label text-secondary small fw-medium">其他福利待遇 / 核心条款</label>
+            <textarea class="form-control" name="benefits" rows="4" placeholder="请详细输入相关的补充福利信息，如五险一金、餐补、住房补贴、弹性工时等..."></textarea>
+          </div>
+          <button class="btn btn-gradient-primary w-100 py-2.5" type="submit">
+            <i class="bi bi-envelope-check-fill me-1"></i>一键正式发送 Offer 邮件
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm reveal">
+      <div class="card-header bg-white fw-bold text-dark border-bottom">
+        <i class="bi bi-people-fill text-primary me-2"></i>优秀候选人速览
+      </div>
+      <div class="table-responsive" style="border-radius: 16px; overflow: hidden;">
+        <table class="table table-hover align-middle mb-0 bg-white">
+          <thead class="table-light text-secondary fw-semibold">
+            <tr>
+              <th class="ps-4">姓名</th>
+              <th>联系邮箱</th>
+              <th>招聘阶段</th>
+              <th class="pe-4">分类标签</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for talent in talents %}
+            <tr class="hover-transition">
+              <td class="ps-4 py-3 fw-bold text-dark">{{ talent.name or '未知' }}</td>
+              <td class="text-secondary small">{{ talent.email or '-' }}</td>
+              <td>
+                {% if talent.status in ['offer_pending', '拟录取'] %}
+                  <span class="badge bg-success-subtle text-success">拟录取</span>
+                {% elif talent.status in ['archived', '已归档'] %}
+                  <span class="badge bg-secondary-subtle text-secondary">已归档</span>
+                {% else %}
+                  <span class="badge bg-primary-subtle text-primary">{{ talent_status_labels.get(talent.status, talent.status or '-') }}</span>
+                {% endif %}
+              </td>
+              <td class="pe-4 text-secondary small">{{ talent.tags or '-' }}</td>
+            </tr>
+            {% else %}
+            <tr>
+              <td class="text-secondary py-5 text-center" colspan="4">
+                <i class="bi bi-inbox fs-2 mb-2 d-block opacity-50"></i>
+                暂无拟录取候选人
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

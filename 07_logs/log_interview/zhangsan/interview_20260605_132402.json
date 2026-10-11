@@ -1,0 +1,36 @@
+{
+  "token": "token_zhangsan",
+  "email": "zhangsan@test.com",
+  "candidate_name": "张三",
+  "resume_name": "张三_简历.pdf",
+  "job_name": "Python高级开发工程师",
+  "resume_id": "-921147185945793450",
+  "start_time": "2026-06-05 13:24:02",
+  "end_time": "2026-06-05 13:24:02",
+  "final_score": 8.5,
+  "status": "completed",
+  "answers": [
+    {
+      "module": "技术能力",
+      "question": "请介绍一下您最擅长的技术栈？",
+      "answer": "我最擅长Python，熟悉Django框架，还有MySQL和Redis数据库。",
+      "score": 5.1,
+      "scoring_reason": "对技术栈了解比较深入"
+    },
+    {
+      "module": "项目经验",
+      "question": "请描述一个您参与的项目？",
+      "answer": "我参与了电商平台后端开发，负责订单系统...",
+      "score": 2.55,
+      "scoring_reason": "项目描述清晰"
+    },
+    {
+      "module": "沟通能力",
+      "question": "您如何与团队成员沟通？",
+      "answer": "我会主动沟通，及时反馈问题...",
+      "score": 0.8500000000000001,
+      "scoring_reason": "沟通能力良好"
+    }
+  ],
+  "log_time": "2026-06-05 13:24:02"
+}

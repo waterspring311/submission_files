@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}人才库{% endblock %}
+{% block content %}
+{% set talent_status_labels = {
+  'active': '活跃',
+  'ai_pending': 'AI面试待完成',
+  'ai_hold': 'AI面试暂缓',
+  'screen_failed': '初筛未通过',
+  'hr_pending': '待HR面试',
+  'hr_scheduled': 'HR面试已安排',
+  'hr_hold': 'HR面试暂缓',
+  'hr_completed': 'HR面试已完成',
+  'offer_pending': '拟录取',
+  'hired': '已录用',
+  'archived': '已归档',
+  'AI面试待完成': 'AI面试待完成',
+  '待HR面试': '待HR面试',
+  'HR面试已安排': 'HR面试已安排',
+  '拟录取': '拟录取',
+  '已录用': '已录用',
+  '已归档': '已归档'
+} %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3 reveal">
+  <div>
+    <h1 class="h3 mb-1 fw-bold text-dark d-flex align-items-center">
+      <span class="badge bg-primary-subtle text-primary me-2"><i class="bi bi-people-fill"></i></span>人才库
+    </h1>
+    <p class="text-secondary mb-0">筛选、推荐、维护候选人状态和简历信息。</p>
+  </div>
+  {% if recommend_job %}
+  <a class="btn btn-outline-secondary" href="{{ url_for('main.talents') }}">
+    <i class="bi bi-arrow-left-circle me-1"></i>退出推荐模式
+  </a>
+  {% endif %}
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-8">
+    <div class="card h-100 border-0 shadow-sm reveal">
+      <div class="card-header bg-white fw-bold text-dark border-bottom">
+        <i class="bi bi-funnel text-primary me-2"></i>高级筛选人才
+      </div>
+      <div class="card-body">
+        <form class="row g-3" method="get">
+          <div class="col-md-3">
+            <input class="form-control" name="keyword" value="{{ filters.get('keyword', '') }}" placeholder="姓名/邮箱/技能">
+          </div>
+          <div class="col-md-3">
+            <select class="form-select" name="status">
+              {% for value, label in [('', '全部状态'), ('active', '活跃'), ('ai_pending', 'AI面试待完成'), ('hr_pending', '待HR面试'), ('hr_scheduled', 'HR面试已安排'), ('offer_pending', '拟录取'), ('hired', '已录用'), ('archived', '已归档')] %}
+              <option value="{{ value }}" {% if filters.get('status') == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <input class="form-control" name="education" value="{{ filters.get('education', '') }}" placeholder="学历">
+          </div>
+          <div class="col-md-2">
+            <input class="form-control" name="city" value="{{ filters.get('city', '') }}" placeholder="城市">
+          </div>
+          <div class="col-md-2 d-grid">
+            <button class="btn btn-gradient-primary" type="submit">筛选</button>
+          </div>
+        </form>
+        <hr class="my-4" style="border-top: 1px dashed rgba(0,0,0,0.15);">
+        <form class="row g-3 align-items-center" method="get">
+          <div class="col-md-9">
+            <select class="form-select" name="recommend_job">
+              <option value="">按岗位推荐人才 (AI模型精密匹配计算)</option>
+              {% for job in jobs %}
+              <option value="{{ job.job_name }}" {% if recommend_job == job.job_name %}selected{% endif %}>{{ job.job_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3 d-grid">
+            <button class="btn btn-outline-custom" type="submit">
+              <i class="bi bi-lightning-charge-fill me-1"></i>智能推荐
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card h-100 border-0 shadow-sm reveal">
+      <div class="card-header bg-white fw-bold text-dark border-bottom">
+        <i class="bi bi-person-plus text-primary me-2"></i>手动录入人才
+      </div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('main.create_talent') }}">
+          <div class="row g-3">
+            <div class="col-md-6 mb-2">
+              <input class="form-control" name="name" placeholder="姓名" required>
+            </div>
+            <div class="col-md-6 mb-2">
+              <input class="form-control" name="email" type="email" placeholder="邮箱">
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6 mb-2">
+              <input class="form-control" name="education" placeholder="学历，如：硕士">
+            </div>
+            <div class="col-md-6 mb-2">
+              <input class="form-control" name="city" placeholder="城市，如：深圳">
+            </div>
+          </div>
+          <input class="form-control mb-3" name="skills" placeholder="技能，如：Python, PyTorch">
+          <input class="form-control mb-3" name="tags" placeholder="求职意向标签">
+          <button class="btn btn-gradient-primary w-100 py-2" type="submit">
+            <i class="bi bi-check-circle-fill me-1"></i>新增人才
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm reveal">
+  <div class="table-responsive" style="border-radius: 16px; overflow: hidden;">
+    <table class="table table-hover align-middle mb-0 bg-white">
+      <thead class="table-light text-secondary fw-semibold">
+        <tr class="text-nowrap-custom">
+          <th class="ps-4">候选人</th>
+          <th class="text-nowrap-custom">城市/学历</th>
+          <th class="text-nowrap-custom">邮箱</th>
+          <th class="text-nowrap-custom">状态</th>
+          <th style="min-width: 240px;">技能 / 简历解析</th>
+          <th class="text-end pe-4 text-nowrap-custom">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for talent in talents %}
+        <tr class="hover-transition">
+          <td class="ps-4 py-3">
+            <div class="fw-bold text-dark fs-6 text-nowrap-custom">{{ talent.name or '未知' }}</div>
+            <div class="small text-muted mt-1 text-nowrap-custom"><i class="bi bi-tag-fill text-primary-subtle me-1"></i>{{ talent.tags or talent.source or '本地导入' }}</div>
+          </td>
+          <td class="text-nowrap-custom">
+            <span class="badge bg-light text-dark border">{{ talent.city or '-' }}</span>
+            <span class="badge bg-light text-dark border">{{ talent.education or '-' }}</span>
+          </td>
+          <td class="text-secondary small text-nowrap-custom">{{ talent.email or '-' }}</td>
+          <td class="text-nowrap-custom">
+            {% if talent.status in ['offer_pending', '拟录取'] %}
+              <span class="badge bg-success-subtle text-success">拟录取</span>
+            {% elif talent.status in ['hr_pending', '待HR面试'] %}
+              <span class="badge bg-info-subtle text-info">待HR面试</span>
+            {% elif talent.status in ['ai_pending', 'AI面试待完成'] %}
+              <span class="badge bg-warning-subtle text-warning">AI面试待完成</span>
+            {% elif talent.status in ['hr_scheduled', 'HR面试已安排'] %}
+              <span class="badge bg-primary-subtle text-primary">HR面试已安排</span>
+            {% elif talent.status in ['archived', '已归档'] %}
+              <span class="badge bg-secondary-subtle text-secondary">已归档</span>
+            {% else %}
+              <span class="badge bg-primary-subtle text-primary">{{ talent_status_labels.get(talent.status, talent.status or '活跃') }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="text-truncate-2 text-dark small" style="max-width: 320px;">{{ talent.skills or '-' }}</div>
+            {% if talent.resume_text %}
+            <details class="mt-2">
+              <summary class="small text-primary" style="cursor: pointer;"><i class="bi bi-file-text me-1"></i>查看简历解析</summary>
+              <pre class="mono-pre small mt-2 mb-0" style="max-height: 200px; overflow-y: auto;">{{ talent.resume_text }}</pre>
+            </details>
+            {% endif %}
+          </td>
+          <td class="text-end pe-4 text-nowrap-custom">
+            <div class="d-flex gap-2 justify-content-end align-items-center flex-wrap">
+              <form method="post" action="{{ url_for('main.change_talent_status', talent_id=talent.id) }}" style="display:inline; margin:0;">
+                <input type="hidden" name="status" value="offer_pending">
+                <button class="btn btn-sm btn-outline-success text-nowrap-custom" type="submit">拟录取</button>
+              </form>
+              <form method="post" action="{{ url_for('main.change_talent_status', talent_id=talent.id) }}" style="display:inline; margin:0;">
+                <input type="hidden" name="status" value="{{ 'active' if talent.status in ['archived', '已归档'] else 'archived' }}">
+                <button class="btn btn-sm btn-outline-secondary text-nowrap-custom" type="submit">{{ '恢复' if talent.status in ['archived', '已归档'] else '归档' }}</button>
+              </form>
+              <form method="post" action="{{ url_for('main.remove_talent', talent_id=talent.id) }}" style="display:inline; margin:0;" onsubmit="return confirm('确定彻底删除该人才吗？');">
+                <button class="btn btn-sm btn-outline-danger text-nowrap-custom" type="submit"><i class="bi bi-trash"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td class="text-secondary py-5 text-center" colspan="6">
+            <i class="bi bi-people fs-2 mb-2 d-block opacity-50"></i>
+            暂无人才库记录
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

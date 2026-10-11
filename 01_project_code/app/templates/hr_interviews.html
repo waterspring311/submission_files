@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}HR面试{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3 reveal">
+  <div>
+    <h1 class="h3 mb-1 fw-bold text-dark d-flex align-items-center">
+      <span class="badge bg-primary-subtle text-primary me-2"><i class="bi bi-person-video3"></i></span>HR面试安排
+    </h1>
+    <p class="text-secondary mb-0">安排人工面试、发送邀请、维护状态和评估结果。</p>
+  </div>
+  <a class="btn btn-outline-custom" href="{{ url_for('main.talents') }}">
+    <i class="bi bi-people me-1"></i>查看人才库
+  </a>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm reveal">
+      <div class="card-header bg-white fw-bold text-dark border-bottom">
+        <i class="bi bi-calendar-plus text-primary me-2"></i>安排新轮次面试
+      </div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('hr.create_hr_interview') }}">
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">候选人姓名</label>
+            <input class="form-control" name="candidate_name" placeholder="如：张强" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">候选人邮箱</label>
+            <input class="form-control" name="email" type="email" placeholder="如：zhangqiang@example.com">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">应聘岗位</label>
+            <select class="form-select" name="job_name">
+              <option value="">选择岗位</option>
+              {% for job in jobs %}
+              <option value="{{ job.job_name }}">{{ job.job_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label text-secondary small fw-medium">面试日期</label>
+              <input class="form-control" name="interview_date" type="date">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-secondary small fw-medium">具体时间</label>
+              <input class="form-control" name="interview_time" type="time">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">面试地点/会议链接</label>
+            <input class="form-control" name="interview_location" placeholder="如：腾讯会议: 123-456-789 或 3楼会议室">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">主面官</label>
+            <input class="form-control" name="interviewer" placeholder="如：王总 / HR 经理">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">联系电话</label>
+            <input class="form-control" name="contact_phone" placeholder="如：138-0000-0000">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">面试备注说明</label>
+            <textarea class="form-control" name="interview_notes" rows="3" placeholder="请在此输入针对面试官或候选人的提示信息..."></textarea>
+          </div>
+          <div class="form-check p-3 rounded-3 bg-light border mb-4 d-flex align-items-center">
+            <input class="form-check-input ms-0 me-3" id="sendHrMail" name="send_mail" value="1" type="checkbox" style="width: 1.25rem; height: 1.25rem; cursor: pointer;">
+            <label class="form-check-label text-dark fw-medium" for="sendHrMail" style="cursor: pointer;">
+              <i class="bi bi-envelope-at text-primary me-1"></i> 发送官方 HR 面试邀请通知邮件
+            </label>
+          </div>
+          <button class="btn btn-gradient-primary w-100 py-2" type="submit">
+            <i class="bi bi-calendar-check-fill me-1"></i>立即安排面试
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card mb-4 border-0 shadow-sm reveal">
+      <div class="card-body p-3">
+        <form class="row g-2 align-items-center" method="get">
+          <div class="col-md-9">
+            <select class="form-select" name="status">
+              {% for value, label in [('', '全部状态'), ('pending', '待确认'), ('confirmed', '已确认'), ('completed', '已完成'), ('cancelled', '已取消'), ('no_show', '未到场')] %}
+              <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3 d-grid">
+            <button class="btn btn-gradient-primary" type="submit">筛选</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm reveal">
+      <div class="table-responsive" style="border-radius: 16px; overflow: hidden;">
+        <table class="table table-hover align-middle mb-0 bg-white">
+          <thead class="table-light text-secondary fw-semibold">
+            <tr>
+              <th class="ps-4">候选人</th>
+              <th>应聘岗位</th>
+              <th>面试时间</th>
+              <th>面试官</th>
+              <th>当前状态</th>
+              <th class="text-end pe-4">管理操作 / 评估</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for interview in interviews %}
+            <tr class="hover-transition">
+              <td class="ps-4 py-3">
+                <div class="fw-bold text-dark fs-6">{{ interview.candidate_name }}</div>
+                <div class="small text-muted mt-1"><i class="bi bi-envelope me-1"></i>{{ interview.email or '-' }}</div>
+              </td>
+              <td><span class="badge bg-light text-dark border"><i class="bi bi-briefcase me-1"></i>{{ interview.job_name or '-' }}</span></td>
+              <td class="text-secondary small">
+                <i class="bi bi-calendar3 me-1"></i>{{ interview.interview_date or '-' }}
+                <span class="text-dark fw-medium ms-1">{{ interview.interview_time or '' }}</span>
+              </td>
+              <td class="fw-semibold text-dark"><i class="bi bi-person-check me-1"></i>{{ interview.interviewer or '-' }}</td>
+              <td>
+                {% if interview.status == 'completed' %}
+                  <span class="badge bg-success-subtle text-success">已完成</span>
+                {% elif interview.status == 'cancelled' %}
+                  <span class="badge bg-danger-subtle text-danger">已取消</span>
+                {% elif interview.status == 'confirmed' %}
+                  <span class="badge bg-primary-subtle text-primary">已确认</span>
+                {% else %}
+                  <span class="badge bg-warning-subtle text-warning">{{ interview.status or '待确认' }}</span>
+                {% endif %}
+              </td>
+              <td class="text-end pe-4">
+                <div class="d-flex gap-1 justify-content-end flex-wrap mb-2">
+                  {% for status, label, color in [('confirmed', '确认', 'primary'), ('cancelled', '取消', 'danger'), ('completed', '完成', 'success')] %}
+                  <form method="post" action="{{ url_for('hr.change_hr_interview_status', interview_id=interview.id) }}" style="display:inline;">
+                    <input type="hidden" name="status" value="{{ status }}">
+                    <button class="btn btn-sm btn-outline-{{ color }}" type="submit">{{ label }}</button>
+                  </form>
+                  {% endfor %}
+                </div>
+                <details class="text-start bg-light p-2 rounded-3 border">
+                  <summary class="small text-primary" style="cursor: pointer;"><i class="bi bi-pencil-square me-1"></i>登记面试反馈结果</summary>
+                  <form method="post" action="{{ url_for('hr.save_hr_interview_result', interview_id=interview.id) }}" class="mt-2">
+                    <input class="form-control form-control-sm mb-2" name="result" placeholder="面试结果，如：通过/暂缓" value="{{ interview.result or '' }}">
+                    <textarea class="form-control form-control-sm mb-2" name="result_notes" rows="2" placeholder="详细面评细节及总结意见...">{{ interview.result_notes or '' }}</textarea>
+                    <button class="btn btn-sm btn-gradient-primary w-100 py-1" type="submit">保存反馈结果</button>
+                  </form>
+                </details>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td class="text-secondary py-5 text-center" colspan="6">
+                <i class="bi bi-person-video3 fs-2 mb-2 d-block opacity-50"></i>
+                暂无线下 HR 面试安排记录
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

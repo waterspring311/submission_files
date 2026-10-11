@@ -1,0 +1,6 @@
+{
+  "score": 0,
+  "report": "API HTTP错误：404 Client Error: Not Found for url: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+  "advantage": "评分失败",
+  "shortcoming": "请稍后重试"
+}

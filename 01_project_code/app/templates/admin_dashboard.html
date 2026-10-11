@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}管理员后台{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3 reveal">
+  <div>
+    <h1 class="h3 mb-1 fw-bold text-dark d-flex align-items-center">
+      <span class="badge bg-dark-subtle text-dark me-2"><i class="bi bi-shield-lock-fill"></i></span>管理员后台
+    </h1>
+    <p class="text-secondary mb-0">集中管理系统配置、招聘信息审核和求职者简历审核。</p>
+  </div>
+</div>
+
+<div class="row g-3 mb-4 reveal">
+  <div class="col-md-3 col-6">
+    <a class="card h-100 border-0 shadow-sm text-decoration-none" href="{{ url_for('admin.config') }}">
+      <div class="card-body">
+        <div class="text-secondary small mb-1">系统配置</div>
+        <div class="fs-3 fw-bold text-dark"><i class="bi bi-sliders text-primary me-2"></i>配置</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-3 col-6">
+    <a class="card h-100 border-0 shadow-sm text-decoration-none" href="{{ url_for('admin.jobs', status='pending') }}">
+      <div class="card-body">
+        <div class="text-secondary small mb-1">待审招聘信息</div>
+        <div class="fs-3 fw-bold text-dark">{{ pending_jobs }}</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-3 col-6">
+    <a class="card h-100 border-0 shadow-sm text-decoration-none" href="{{ url_for('admin.resumes', status='pending') }}">
+      <div class="card-body">
+        <div class="text-secondary small mb-1">待审简历</div>
+        <div class="fs-3 fw-bold text-dark">{{ pending_resumes }}</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="text-secondary small mb-1">当前开放岗位</div>
+        <div class="fs-3 fw-bold text-dark">{{ stats.open_jobs }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 reveal">
+  <div class="col-md-4">
+    <a class="btn btn-light border w-100 py-3 text-start h-100 d-flex flex-column justify-content-between shadow-sm card" href="{{ url_for('admin.config') }}">
+      <div>
+        <span class="fs-4 text-primary"><i class="bi bi-cpu"></i></span>
+        <span class="fw-bold d-block text-dark mt-2">大模型与邮箱配置</span>
+      </div>
+      <span class="text-secondary small mt-1">维护 API、模型、SMTP 和通知邮箱</span>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a class="btn btn-light border w-100 py-3 text-start h-100 d-flex flex-column justify-content-between shadow-sm card" href="{{ url_for('admin.jobs') }}">
+      <div>
+        <span class="fs-4 text-success"><i class="bi bi-briefcase"></i></span>
+        <span class="fw-bold d-block text-dark mt-2">招聘信息审核</span>
+      </div>
+      <span class="text-secondary small mt-1">审核招聘者发布的岗位和 JD</span>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a class="btn btn-light border w-100 py-3 text-start h-100 d-flex flex-column justify-content-between shadow-sm card" href="{{ url_for('admin.resumes') }}">
+      <div>
+        <span class="fs-4 text-warning"><i class="bi bi-file-earmark-person"></i></span>
+        <span class="fw-bold d-block text-dark mt-2">求职者简历审核</span>
+      </div>
+      <span class="text-secondary small mt-1">查看投递记录、评分和审核备注</span>
+    </a>
+  </div>
+</div>
+{% endblock %}

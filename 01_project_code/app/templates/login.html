@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}登录{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-5 col-md-7">
+    <div class="card border-0 shadow-lg">
+      <div class="card-body p-4 p-md-5">
+        <div class="text-center mb-4">
+          <div class="d-inline-flex align-items-center justify-content-center rounded-4 bg-primary-subtle text-primary mb-3" style="width: 56px; height: 56px;">
+            <i class="bi bi-shield-lock-fill fs-3"></i>
+          </div>
+          <h1 class="h3 fw-bold mb-2">登录智聘未来</h1>
+          <p class="text-secondary mb-0">请先登录，系统会按角色进入对应功能。</p>
+        </div>
+
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" action="{{ url_for('auth.login') }}">
+          <input type="hidden" name="next" value="{{ next_url or '' }}">
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">角色</label>
+            <select class="form-select" name="role" required>
+              <option value="candidate">求职者</option>
+              <option value="recruiter">招聘者</option>
+              <option value="admin">管理员</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">用户名</label>
+            <input class="form-control" name="username" autocomplete="username" placeholder="candidate / recruiter / admin" required>
+          </div>
+          <div class="mb-4">
+            <label class="form-label text-secondary small fw-medium">密码</label>
+            <input class="form-control" name="password" type="password" autocomplete="current-password" placeholder="123456" required>
+          </div>
+          <button class="btn btn-gradient-primary w-100 py-3" type="submit">登录</button>
+        </form>
+
+        <div class="border rounded-4 p-3 mt-4 bg-light">
+          <div class="fw-semibold mb-2">演示账号</div>
+          <div class="small text-secondary">求职者：candidate / 123456</div>
+          <div class="small text-secondary">招聘者：recruiter / 123456</div>
+          <div class="small text-secondary">管理员：admin / 123456</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

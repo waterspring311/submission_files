@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}智能日报{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3 reveal">
+  <div>
+    <h1 class="h3 mb-1 fw-bold text-dark d-flex align-items-center">
+      <span class="badge bg-primary-subtle text-primary me-2"><i class="bi bi-graph-up-arrow"></i></span>智能日报
+    </h1>
+    <p class="text-secondary mb-0">按日期范围汇总招聘数据、日志和面试情况。</p>
+  </div>
+</div>
+
+<div class="card mb-4 border-0 shadow-sm reveal">
+  <div class="card-body p-4">
+    <form class="row g-3 align-items-center" method="post">
+      <div class="col-md-4">
+        <label class="form-label text-secondary small fw-medium">统计日期范围</label>
+        <select class="form-select" name="range">
+          {% for item in ['今日', '昨日', '近7天', '近30天'] %}
+          <option value="{{ item }}" {% if selected_range == item %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label text-secondary small fw-medium">生成模式</label>
+        <select class="form-select" name="use_ai">
+          <option value="0">生成本地日报</option>
+          <option value="1">调用AI生成日报 (大模型深度分析提炼)</option>
+        </select>
+      </div>
+      <div class="col-md-4 d-grid align-self-end">
+        <button class="btn btn-gradient-primary py-2" type="submit">
+          <i class="bi bi-magic me-1"></i>一键智能生成日报
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm reveal">
+  <div class="card-header bg-white fw-bold text-dark border-bottom">
+    <i class="bi bi-file-earmark-bar-graph text-primary me-2"></i>日报报告内容
+  </div>
+  <div class="card-body">
+    <pre class="mono-pre mb-0" style="max-height: 550px; overflow-y: auto; font-size: 0.95rem; line-height: 1.6;">{{ report }}</pre>
+  </div>
+</div>
+{% endblock %}
